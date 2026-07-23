@@ -1,0 +1,10 @@
+pandas
+numpy
+requests
+jupyterlab
+implicit
+scikit-learn
+python-dotenv
+boto3
+pytest
+pyarrow

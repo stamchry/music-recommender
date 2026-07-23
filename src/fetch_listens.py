@@ -48,26 +48,28 @@ def fetch_listens(username, token=None, max_pages=5):
 
 def main():
     load_dotenv()
-    username = os.getenv("LISTENBRAINZ_USERNAME")
+    # Support multiple users via comma-separated string, fallback to single username
+    usernames_env = os.getenv("LISTENBRAINZ_USERNAMES", os.getenv("LISTENBRAINZ_USERNAME"))
     token = os.getenv("LISTENBRAINZ_TOKEN")
     
-    if not username:
-        logger.error("LISTENBRAINZ_USERNAME not found in environment.")
+    if not usernames_env:
+        logger.error("LISTENBRAINZ_USERNAMES not found in environment.")
         return
         
-    logger.info(f"Starting fetch for user: {username}")
+    usernames = [u.strip() for u in usernames_env.split(",") if u.strip()]
     
-    listens = fetch_listens(username, token, max_pages=5)
-    
-    # Save to data/raw
     output_dir = Path(__file__).resolve().parent.parent / "data" / "raw"
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    output_file = output_dir / f"{username}_listens.json"
-    with open(output_file, "w") as f:
-        json.dump(listens, f, indent=2)
+    for username in usernames:
+        logger.info(f"Starting fetch for user: {username}")
+        listens = fetch_listens(username, token, max_pages=5)
         
-    logger.info(f"Saved {len(listens)} listens to {output_file}")
+        output_file = output_dir / f"{username}_listens.json"
+        with open(output_file, "w") as f:
+            json.dump(listens, f, indent=2)
+            
+        logger.info(f"Saved {len(listens)} listens to {output_file}")
 
 if __name__ == "__main__":
     main()

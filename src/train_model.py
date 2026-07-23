@@ -1,4 +1,6 @@
 import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
 import logging
 import pickle
 from pathlib import Path
@@ -6,8 +8,6 @@ import pandas as pd
 import scipy.sparse as sparse
 import implicit
 from dotenv import load_dotenv
-
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def train_model(input_file, model_dir):
     df_counts['artist_id'] = artist_ids
     
     # Create sparse matrix: rows=users, cols=artists, values=plays
-    # implicit >= 0.5 expects a user-item matrix for training
+    # implicit >= 0.5.0 expects a user-item matrix for training
     user_item_data = sparse.csr_matrix(
         (df_counts['plays'].astype(float), (df_counts['user_id'], df_counts['artist_id']))
     )
@@ -67,14 +67,9 @@ def train_model(input_file, model_dir):
 
 def main():
     load_dotenv()
-    username = os.getenv("LISTENBRAINZ_USERNAME")
     
-    if not username:
-        logger.error("LISTENBRAINZ_USERNAME not found in environment.")
-        return
-        
     base_dir = Path(__file__).resolve().parent.parent
-    input_file = base_dir / "data" / "processed" / f"{username}_listens.parquet"
+    input_file = base_dir / "data" / "processed" / "all_listens.parquet"
     model_dir = base_dir / "models"
     
     if not input_file.exists():

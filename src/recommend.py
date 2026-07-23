@@ -1,12 +1,12 @@
 import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
 import logging
 import pickle
 from pathlib import Path
 import scipy.sparse as sparse
 import pandas as pd
 from dotenv import load_dotenv
-
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,28 +34,28 @@ def recommend(username, model_dir, data_dir, n_recommendations=10):
         
     user_id = user_cat.get_loc(username)
     
-    input_file = data_dir / f"{username}_listens.parquet"
+    input_file = data_dir / "all_listens.parquet"
     if not input_file.exists():
         logger.error(f"Processed data file not found: {input_file}")
         return
         
     df = pd.read_parquet(input_file)
-    df_counts = df.groupby(['user_name', 'artist_name']).size().reset_index(name='plays')
+    user_df = df[df['user_name'] == username]
+    df_counts = user_df.groupby(['artist_name']).size().reset_index(name='plays')
     
     df_counts = df_counts[df_counts['artist_name'].isin(artist_cat)]
     df_counts['artist_id'] = df_counts['artist_name'].apply(lambda x: artist_cat.get_loc(x))
-    df_counts['user_id'] = user_id
     
-    user_item_data = sparse.csr_matrix(
-        (df_counts['plays'].astype(float), (df_counts['user_id'], df_counts['artist_id'])),
-        shape=(len(user_cat), len(artist_cat))
+    user_items = sparse.csr_matrix(
+        (df_counts['plays'].astype(float), ([0] * len(df_counts), df_counts['artist_id'])),
+        shape=(1, len(artist_cat))
     )
     
     logger.info(f"Generating top {n_recommendations} recommendations for {username}...")
     
     ids, scores = model.recommend(
         user_id, 
-        user_item_data, 
+        user_items[0], 
         N=n_recommendations,
         filter_already_liked_items=True
     )

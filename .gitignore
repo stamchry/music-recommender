@@ -8,3 +8,4 @@ models/
 *.pkl
 *.parquet
 .DS_Store
+handout.md

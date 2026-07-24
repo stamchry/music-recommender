@@ -72,11 +72,19 @@ def main():
     input_file = base_dir / "data" / "processed" / "all_listens.parquet"
     model_dir = base_dir / "models"
     
+    bucket = os.getenv("AWS_S3_BUCKET")
+    if bucket:
+        from s3_utils import download_file, upload_directory
+        download_file(bucket, "data/processed/all_listens.parquet", input_file)
+    
     if not input_file.exists():
         logger.error(f"Input file not found: {input_file}. Run clean_data.py first.")
         return
         
     train_model(input_file, model_dir)
+    
+    if bucket:
+        upload_directory(model_dir, bucket, "models")
 
 if __name__ == "__main__":
     main()

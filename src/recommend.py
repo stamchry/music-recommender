@@ -79,6 +79,12 @@ def main():
     model_dir = base_dir / "models"
     data_dir = base_dir / "data" / "processed"
     
+    bucket = os.getenv("AWS_S3_BUCKET")
+    if bucket:
+        from s3_utils import download_directory, download_file
+        download_directory(bucket, "models", model_dir)
+        download_file(bucket, "data/processed/all_listens.parquet", data_dir / "all_listens.parquet")
+        
     recommend(username, model_dir, data_dir)
 
 if __name__ == "__main__":

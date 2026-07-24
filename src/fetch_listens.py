@@ -70,6 +70,12 @@ def main():
             json.dump(listens, f, indent=2)
             
         logger.info(f"Saved {len(listens)} listens to {output_file}")
+        
+        bucket = os.getenv("AWS_S3_BUCKET")
+        if bucket:
+            from s3_utils import upload_file
+            s3_key = f"data/raw/{output_file.name}"
+            upload_file(output_file, bucket, s3_key)
 
 if __name__ == "__main__":
     main()

@@ -72,7 +72,15 @@ def main():
     raw_dir = base_dir / "data" / "raw"
     output_file = base_dir / "data" / "processed" / "all_listens.parquet"
     
+    bucket = os.getenv("AWS_S3_BUCKET")
+    if bucket:
+        from s3_utils import download_directory, upload_file
+        download_directory(bucket, "data/raw", raw_dir)
+        
     clean_data(raw_dir, output_file)
+    
+    if bucket:
+        upload_file(output_file, bucket, f"data/processed/{output_file.name}")
 
 if __name__ == "__main__":
     main()

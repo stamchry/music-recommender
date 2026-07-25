@@ -1,4 +1,6 @@
-// Music Recommender Studio · Human-Readable Console Controller
+// Music Recommender Studio · Serverless Cloud Backend Controller
+const CLOUD_API_URL = "https://ujyf3ifvh65rsds7j4x27huhdm0hcinp.lambda-url.us-east-1.on.aws";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("rec-form");
   const input = document.getElementById("username-input");
@@ -59,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const startTime = performance.now();
-      const response = await fetch(`/api/recommend?username=${encodeURIComponent(username)}`);
+      const response = await fetch(`${CLOUD_API_URL}/?username=${encodeURIComponent(username)}`);
       
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));

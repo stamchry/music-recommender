@@ -66,7 +66,7 @@ def clean_data(raw_dir, output_file):
     combined_df.to_parquet(output_file, index=False)
 
 def main():
-    load_dotenv()
+    load_dotenv(override=True)
     
     base_dir = Path(__file__).resolve().parent.parent
     raw_dir = base_dir / "data" / "raw"

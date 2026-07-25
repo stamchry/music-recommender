@@ -68,7 +68,7 @@ def recommend(username, model_dir, data_dir, n_recommendations=10):
     print("-" * 40)
 
 def main():
-    load_dotenv()
+    load_dotenv(override=True)
     username = os.getenv("LISTENBRAINZ_USERNAME")
     
     if not username:

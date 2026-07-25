@@ -8,3 +8,8 @@ python-dotenv
 boto3
 pytest
 pyarrow
+matplotlib
+seaborn
+duckdb
+zstandard
+tqdm

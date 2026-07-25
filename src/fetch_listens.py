@@ -27,8 +27,18 @@ def fetch_listens(username, token=None, max_pages=5):
             params["max_ts"] = max_ts
             
         logger.info(f"Fetching page {page + 1} for {username}...")
-        response = requests.get(base_url, headers=headers, params=params)
-        response.raise_for_status()
+        
+        for attempt in range(3):
+            try:
+                response = requests.get(base_url, headers=headers, params=params, timeout=15)
+                response.raise_for_status()
+                break
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying...")
+                time.sleep(2 ** attempt)
+        else:
+            logger.error(f"Failed to fetch page {page + 1} for {username} after 3 attempts. Skipping rest of user.")
+            break
         
         data = response.json()
         payload = data.get("payload", {})
@@ -47,7 +57,7 @@ def fetch_listens(username, token=None, max_pages=5):
     return all_listens
 
 def main():
-    load_dotenv()
+    load_dotenv(override=True)
     # Support multiple users via comma-separated string, fallback to single username
     usernames_env = os.getenv("LISTENBRAINZ_USERNAMES", os.getenv("LISTENBRAINZ_USERNAME"))
     token = os.getenv("LISTENBRAINZ_TOKEN")
@@ -63,7 +73,7 @@ def main():
     
     for username in usernames:
         logger.info(f"Starting fetch for user: {username}")
-        listens = fetch_listens(username, token, max_pages=5)
+        listens = fetch_listens(username, token, max_pages=20)
         
         output_file = output_dir / f"{username}_listens.json"
         with open(output_file, "w") as f:

@@ -66,7 +66,7 @@ def train_model(input_file, model_dir):
     logger.info("Model training complete and saved.")
 
 def main():
-    load_dotenv()
+    load_dotenv(override=True)
     
     base_dir = Path(__file__).resolve().parent.parent
     input_file = base_dir / "data" / "processed" / "all_listens.parquet"

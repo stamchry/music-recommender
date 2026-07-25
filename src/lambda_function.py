@@ -165,10 +165,7 @@ def lambda_handler(event, context=None):
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+                "Content-Type": "application/json"
             },
             "body": json.dumps(results, ensure_ascii=False, indent=2)
         }
@@ -176,14 +173,14 @@ def lambda_handler(event, context=None):
         logger.warning(f"Inference warning for {username}: {ve}")
         return {
             "statusCode": 404,
-            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "headers": {"Content-Type": "application/json"},
             "body": json.dumps({"error": str(ve), "username": username})
         }
     except Exception as e:
         logger.exception("Unexpected error during cloud recommendation inference.")
         return {
             "statusCode": 500,
-            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "headers": {"Content-Type": "application/json"},
             "body": json.dumps({"error": "Internal server error during recommendation projection."})
         }
 

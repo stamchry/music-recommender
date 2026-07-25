@@ -71,7 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       const elapsed = Math.round(performance.now() - startTime);
       
-      showStatus("🧠", `Comparing taste profile against 62,900+ community artists...`);
+      const catalogSize = data.total_catalog_artists ? `${data.total_catalog_artists.toLocaleString()} live` : "dynamic";
+      showStatus("🧠", `Comparing taste profile against ${catalogSize} community artist vectors...`);
       showStatus("✨", `Success! Generated top artist recommendations in ${data.execution_time_ms || elapsed} ms.`);
 
       renderDashboard(data);
@@ -88,6 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
     displayUsername.textContent = data.username;
     execMs.textContent = data.execution_time_ms || 198;
     matchCount.textContent = data.profile_matches_found || "0";
+
+    // Dynamically update live community user training statistics on page header
+    if (data.total_community_users) {
+      const statUsers = document.getElementById("stat-users");
+      if (statUsers) statUsers.textContent = `${data.total_community_users.toLocaleString()}+ community members`;
+    }
 
     // Format top scrobbles in plain English
     const samples = data.top_scrobbles_sampled || [];

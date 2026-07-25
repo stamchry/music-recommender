@@ -58,7 +58,7 @@ Loading over **4.5 million nested community listen events (~3.1 GB)** directly i
 * **Storage Footprint:** Condenses 3.1 GB of uncompressed JSON into an optimized **~48 MB Parquet file** in under 20 seconds.
 
 ### 2. High-Speed Collaborative Filtering Engine
-* Employs implicit feedback **Alternating Least Squares (ALS)** ([train_model.py](file:///home/stamatis/projects/music-recommender/src/train_model.py)) across an active interaction matrix of **~15,000 users** and **~62,900 distinct artists**.
+* Employs implicit feedback **Alternating Least Squares (ALS)** ([train_model.py](file:///home/stamatis/projects/music-recommender/src/train_model.py)) across an active interaction matrix of tens of thousands of community members and dynamic artist catalog vectors.
 * Implements mathematical matrix *"folding-in"* ([lambda_function.py](file:///home/stamatis/projects/music-recommender/src/lambda_function.py)), projecting a user's recent real-time listening history directly against fixed S3 artist embeddings to generate fresh taste discoveries instantly without requiring database retraining.
 
 ### 3. Fully Automated Cloud CI/CD Pipeline

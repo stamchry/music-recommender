@@ -99,7 +99,7 @@ def predict_recommendations(username, n_recommendations=10):
     if not user_artists:
         raise ValueError(f"No listening history found for user '{username}' on ListenBrainz.")
         
-    # 2. Build frequency-weighted user interaction vector against our 62,000+ S3 item factors
+    # 2. Build frequency-weighted user interaction vector against our dynamic S3 item factor catalog
     plays = []
     indices = []
     matched_artists = []
@@ -141,6 +141,8 @@ def predict_recommendations(username, n_recommendations=10):
         
     return {
         "username": username,
+        "total_catalog_artists": len(artist_cat),
+        "total_community_users": len(mappings.get("user_cat", [])),
         "profile_matches_found": len(matched_artists),
         "top_scrobbles_sampled": matched_artists[:5],
         "recommendations": recommendations

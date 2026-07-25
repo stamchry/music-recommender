@@ -47,8 +47,8 @@ jobs:
         run: |
           echo "Installing minimal serverless runtime dependencies into staging folder..."
           mkdir -p package
-          # Install compiled Linux x86_64 binary wheels suitable for AWS Lambda
-          pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir
+          # Install compiled Linux x86_64 binary wheels optimized specifically for AWS Lambda (Amazon Linux)
+          pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.11 || pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir
           
           echo "Pruning extraneous test suites and bytecode to optimize bundle footprint..."
           find package/ -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true

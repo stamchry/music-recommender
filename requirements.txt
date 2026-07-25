@@ -1,8 +1,8 @@
-pandas
-numpy
+pandas<2.2.0,>=2.0.0
+numpy<2.0.0,>=1.24.0
 requests
 jupyterlab
-implicit
+implicit==0.7.2
 scikit-learn
 python-dotenv
 boto3

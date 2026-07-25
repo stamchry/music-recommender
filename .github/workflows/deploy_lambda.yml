@@ -30,6 +30,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
       LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME || 'MusicRecommenderInference' }}
 
@@ -51,6 +52,12 @@ jobs:
           # Install compiled Linux x86_64 binary wheels suitable for AWS Lambda
           pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir
           
+          echo "Pruning extraneous test suites and bytecode to optimize bundle footprint..."
+          find package/ -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
+          find package/ -name "test" -type d -exec rm -rf {} + 2>/dev/null || true
+          find package/ -name "*.pyc" -delete 2>/dev/null || true
+          find package/ -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true
+          
           echo "Copying recommendation inference entry point..."
           cp src/lambda_function.py package/
           
@@ -62,17 +69,21 @@ jobs:
           echo "Package inspection:"
           ls -lh deployment_bundle.zip
           
-      - name: 🚀 Deploy to AWS Lambda Free Tier Endpoint
+      - name: 🚀 Deploy to AWS Lambda Free Tier Endpoint via S3 Staging
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-            echo "⚠️ AWS secrets not configured in repository settings. Package built successfully, skipping cloud push."
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_S3_BUCKET" ]; then
+            echo "⚠️ AWS secrets (or AWS_S3_BUCKET) not configured in repository settings. Skipping cloud push."
             exit 0
           fi
           
-          echo "Pushing compiled zip bundle directly to AWS Lambda function: $LAMBDA_FUNCTION_NAME..."
+          echo "Uploading compiled deployment bundle to S3 staging (s3://$AWS_S3_BUCKET) to bypass direct CLI 50MB limits..."
+          aws s3 cp deployment_bundle.zip "s3://$AWS_S3_BUCKET/deploy/deployment_bundle.zip"
+          
+          echo "Updating AWS Lambda function from S3 staged artifact..."
           aws lambda update-function-code \
             --function-name "$LAMBDA_FUNCTION_NAME" \
-            --zip-file fileb://deployment_bundle.zip \
+            --s3-bucket "$AWS_S3_BUCKET" \
+            --s3-key "deploy/deployment_bundle.zip" \
             --publish
             
           echo "✨ AWS Lambda endpoint successfully updated with zero server downtime!"

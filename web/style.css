@@ -1,0 +1,316 @@
+/*
+ * Music Recommender · Sleek Terminal / Monospaced Console Theme
+ * Aesthetics: JetBrains Mono / Fira Code, Amber/Terminal Green accents, ASCII formatting, Minimalist CLI
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+
+:root {
+  --bg-terminal: #0b0d0e;
+  --bg-window: #111417;
+  --bg-panel: #161a1d;
+  --bg-highlight: rgba(74, 246, 38, 0.08);
+  
+  --term-green: #4af626;      /* Classic phosphor green */
+  --term-cyan: #00e5ff;       /* Terminal cyan */
+  --term-amber: #ffb800;      /* Alert amber */
+  --term-dim: #5c6873;        /* Dimmed text / ASCII borders */
+  
+  --text-main: #d3dfeb;
+  --text-bright: #ffffff;
+  
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --border-style: 1px solid #232b32;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-mono);
+  background-color: var(--bg-terminal);
+  color: var(--text-main);
+  line-height: 1.5;
+  padding: 2rem 1rem;
+  font-size: 14px;
+}
+
+/* Terminal Window Frame */
+.terminal-window {
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: var(--bg-window);
+  border: var(--border-style);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.terminal-titlebar {
+  background-color: #1a1f24;
+  padding: 0.6rem 1rem;
+  border-bottom: var(--border-style);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.window-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dot.red { background-color: #ff5f56; }
+.dot.yellow { background-color: #ffbd2e; }
+.dot.green { background-color: #27c93f; }
+
+.window-title {
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.terminal-body {
+  padding: 1.5rem 2rem;
+}
+
+/* Header & ASCII Branding */
+.ascii-banner {
+  color: var(--term-green);
+  font-weight: 700;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.sys-info {
+  color: var(--term-dim);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--term-dim);
+}
+
+.sys-info span {
+  color: var(--term-cyan);
+}
+
+/* Terminal Prompt & Input */
+.prompt-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.prompt-path {
+  color: var(--term-cyan);
+  font-weight: 700;
+}
+
+.prompt-cmd {
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.input-container {
+  display: flex;
+  flex: 1;
+  min-width: 260px;
+  gap: 0.5rem;
+}
+
+.term-input {
+  flex: 1;
+  background: var(--bg-panel);
+  border: 1px solid var(--term-dim);
+  color: var(--term-green);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  outline: none;
+}
+
+.term-input:focus {
+  border-color: var(--term-green);
+  box-shadow: 0 0 5px rgba(74, 246, 38, 0.3);
+}
+
+.term-btn {
+  background: transparent;
+  color: var(--term-green);
+  border: 1px solid var(--term-green);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.term-btn:hover {
+  background: var(--term-green);
+  color: var(--bg-terminal);
+}
+
+/* Quick Arguments / Test Profiles */
+.args-row {
+  margin-bottom: 2rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.arg-btn {
+  background: var(--bg-panel);
+  border: 1px dashed var(--term-dim);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.arg-btn:hover {
+  border-color: var(--term-amber);
+  color: var(--term-amber);
+}
+
+/* Execution Status */
+#log-stream {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+
+.log-entry {
+  margin-bottom: 0.3rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.log-time { color: var(--term-dim); }
+.log-level { color: var(--term-cyan); font-weight: 700; }
+.log-msg { color: var(--text-main); }
+
+/* Results Section */
+.results-console {
+  display: none;
+  border-top: 1px dashed var(--term-dim);
+  padding-top: 1.5rem;
+}
+
+.results-console.visible {
+  display: block;
+}
+
+.profile-log {
+  background: var(--bg-panel);
+  border: var(--border-style);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.profile-log strong {
+  color: var(--term-amber);
+}
+
+/* Terminal Tables */
+.term-table-container {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.term-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.term-table th {
+  color: var(--term-cyan);
+  border-bottom: 2px solid var(--term-dim);
+  padding: 0.6rem 0.8rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.term-table td {
+  padding: 0.8rem;
+  border-bottom: 1px solid #1e252c;
+  vertical-align: middle;
+}
+
+.term-table tr:hover td {
+  background-color: var(--bg-highlight);
+}
+
+.conf-bar {
+  display: inline-block;
+  color: var(--term-green);
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid #283038;
+  background: #111417;
+  width: 175px;
+  transition: all 0.15s ease;
+}
+
+.spotify-btn { color: #1ed760; border-color: rgba(30, 215, 96, 0.35); }
+.spotify-btn:hover { background: rgba(30, 215, 96, 0.15); border-color: #1ed760; transform: translateX(2px); }
+
+.youtube-btn { color: #ff3333; border-color: rgba(255, 51, 51, 0.35); }
+.youtube-btn:hover { background: rgba(255, 51, 51, 0.15); border-color: #ff3333; transform: translateX(2px); }
+
+footer {
+  border-top: 1px solid #1a2027;
+  padding: 1rem 2rem;
+  font-size: 0.8rem;
+  color: var(--term-dim);
+  text-align: center;
+  background-color: #0e1114;
+}
+
+@media (max-width: 600px) {
+  .terminal-body { padding: 1rem; }
+  .prompt-line { flex-direction: column; align-items: flex-start; }
+  .term-table th, .term-table td { padding: 0.4rem; font-size: 0.75rem; }
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Recommender Studio · AI Discovery Engine</title>
+  <meta name="description" content="Discover personalized music artist recommendations powered by machine learning and analyzed across 4.5+ million community song plays.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="terminal-window">
+    <header class="terminal-titlebar">
+      <div class="window-buttons">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="window-title">Music Recommender — Studio Console</div>
+    </header>
+
+    <div class="terminal-body">
+      <pre class="ascii-banner">
+ ██████   ██████                     ███             
+░░██████ ██████                     ░░░              
+ ░███░█████░███  █████ ████  █████  ████   ██████    
+ ░███░░███ ░███ ░░███ ░███  ███░░  ░░███  ███░░███   
+ ░███ ░░░  ░███  ░███ ░███ ░░█████  ░███ ░███ ░░░    
+ ░███      ░███  ░███ ░███  ░░░░███ ░███ ░███  ███   
+ █████     █████ ░░████████ ██████  █████░░██████    
+░░░░░     ░░░░░   ░░░░░░░░ ░░░░░░  ░░░░░  ░░░░░░     
+                                                     
+                                                     
+                                                     
+ ███████████                                                                                      █████                   
+░░███░░░░░███                                                                                    ░░███                    
+ ░███    ░███   ██████   ██████   ██████  █████████████   █████████████    ██████  ████████    ███████   ██████  ████████ 
+ ░██████████   ███░░███ ███░░███ ███░░███░░███░░███░░███ ░░███░░███░░███  ███░░███░░███░░███  ███░░███  ███░░███░░███░░███
+ ░███░░░░░███ ░███████ ░███ ░░░ ░███ ░███ ░███ ░███ ░███  ░███ ░███ ░███ ░███████  ░███ ░███ ░███ ░███ ░███████  ░███ ░░░ 
+ ░███    ░███ ░███░░░  ░███  ███░███ ░███ ░███ ░███ ░███  ░███ ░███ ░███ ░███░░░   ░███ ░███ ░███ ░███ ░███░░░   ░███     
+ █████   █████░░██████ ░░██████ ░░██████  █████░███ █████ █████░███ █████░░██████  ████ █████░░████████░░██████  █████    
+░░░░░   ░░░░░  ░░░░░░   ░░░░░░   ░░░░░░  ░░░░░ ░░░ ░░░░░ ░░░░░ ░░░ ░░░░░  ░░░░░░  ░░░░ ░░░░░  ░░░░░░░░  ░░░░░░  ░░░░░     
+</pre>
+
+      <section class="sys-info">
+        <div style="font-size: 1rem; color: var(--text-bright); font-weight: 600; margin-bottom: 0.3rem;">
+          Discover your next favorite artists, powered by AI & community listening patterns.
+        </div>
+        <div>
+          Trained offline across <strong>4,524,206 real song plays</strong> from <strong>15,000+ community members</strong> on <a href="https://listenbrainz.org" target="_blank" style="color: var(--term-cyan); text-decoration: none;">ListenBrainz</a>.
+        </div>
+      </section>
+
+      <!-- Friendly Input Bar -->
+      <form id="rec-form" onsubmit="return false;" aria-label="Prediction Search Bar">
+        <div class="prompt-line">
+          <label for="username-input" class="prompt-path" style="font-size: 1rem;">👉 Enter a ListenBrainz username:</label>
+          <div class="input-container">
+            <input 
+              type="text" 
+              id="username-input" 
+              class="term-input" 
+              placeholder="e.g. trampakulas" 
+              value="trampakulas"
+              required
+              autocomplete="off"
+              aria-label="Target ListenBrainz Username"
+            >
+            <button type="submit" id="submit-button" class="term-btn">Get Recommendations →</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Accessible Profile Presets -->
+      <div class="args-row" id="presets-container" style="margin-top: 1rem;">
+        <span style="color: var(--term-dim);">Or try a live test profile:</span>
+        <button class="arg-btn user-tag" data-username="trampakulas" type="button">🎸 trampakulas (Classic Rock & Legends)</button>
+        <button class="arg-btn user-tag" data-username="lypka" type="button">🎛️ lypka (Electronic & Ambient)</button>
+        <button class="arg-btn user-tag" data-username="rexvizsla" type="button">🎤 rexvizsla (Modern Pop & Chart Hits)</button>
+        <button class="arg-btn user-tag" data-username="Tigermelon" type="button">🎷 Tigermelon (Math-Rock & Funk Grooves)</button>
+        <button class="arg-btn user-tag" data-username="Eslamov" type="button">🎧 Eslamov (Hip-Hop & R&B)</button>
+      </div>
+
+      <!-- Human-Readable Execution Status -->
+      <section id="log-stream" aria-live="polite" style="margin: 1.5rem 0; font-size: 0.95rem;">
+        <!-- Dynamically injected conversational progress updates -->
+      </section>
+
+      <!-- Results Section -->
+      <section id="results-dashboard" class="results-console" aria-label="Recommendation Results Table">
+        <div class="profile-log" id="profile-summary">
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.4rem;">
+            🎵 Taste Summary for: <span id="display-username" style="color: var(--term-cyan);"></span>
+          </div>
+          <div style="color: var(--term-dim);">
+            Our algorithm recognized <strong id="match-count" style="color: var(--term-green);">0</strong> of your favorite artists to understand your musical style in <span id="exec-ms">0</span> milliseconds.
+          </div>
+          <div style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #1e252c; color: var(--text-main);">
+            <span style="color: var(--term-amber); font-weight: 600;">Your most-played artist sample:</span> 
+            <span id="sampled-pills-container"></span>
+          </div>
+        </div>
+
+        <div style="margin: 1.5rem 0 0.8rem 0; font-weight: 700; color: var(--text-bright); font-size: 1.05rem;">
+          ✨ Top 10 Recommended Artists for You to Discover (Excluding artists you already play):
+        </div>
+
+        <div class="term-table-container">
+          <table class="term-table" id="results-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Rank</th>
+                <th>Recommended Artist</th>
+                <th style="width: 200px;">AI Fit Score</th>
+                <th style="width: 240px;">Listen Now</th>
+              </tr>
+            </thead>
+            <tbody id="recommendations-grid">
+              <!-- Dynamically populated artist recommendations -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer id="main-footer">
+      <div>Designed for fast discovery · Model artifacts hosted completely on AWS Free Tier</div>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

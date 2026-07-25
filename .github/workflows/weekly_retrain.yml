@@ -1,0 +1,48 @@
+name: Automated Weekly Recommender Retraining & Cloud Sync
+
+on:
+  schedule:
+    # Runs automatically every Sunday at 02:00 UTC
+    - cron: '0 2 * * 0'
+  # Enables manual button execution directly from the GitHub Actions web UI!
+  workflow_dispatch:
+
+jobs:
+  out-of-core-pipeline:
+    runs-on: ubuntu-latest
+    # Utilizing free GitHub Actions 7GB RAM Ubuntu virtual servers ($0.00 cloud execution)
+    timeout-minutes: 30
+    
+    env:
+      LISTENBRAINZ_USERNAME: ${{ secrets.LISTENBRAINZ_USERNAME || 'trampakulas' }}
+      LISTENBRAINZ_USERNAMES: ${{ secrets.LISTENBRAINZ_USERNAMES || 'trampakulas,lypka,rexvizsla,Tigermelon,Eslamov,Sn0wKobra' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      OPENBLAS_NUM_THREADS: "2" # Optimized for 2 vCPU GitHub cloud runners
+
+    steps:
+      - name: 📥 Checkout Repository Code
+        uses: actions/checkout@v4
+        
+      - name: 🐍 Set up Python 3.11 Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+          
+      - name: 📦 Install Data Engineering & ML Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: 🦆 Execute Out-of-Core DuckDB ETL & ALS Retraining Pipeline
+        run: |
+          python src/run_weekly_pipeline.py
+          
+      - name: 🧹 Cloud Runner Health Verification
+        run: |
+          echo "Checking remaining disk space after automatic multi-gigabyte debris purge..."
+          df -h /
+          ls -lh data/processed/ models/

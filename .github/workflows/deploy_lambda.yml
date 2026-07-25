@@ -59,6 +59,11 @@ jobs:
           echo "Copying recommendation inference entry point..."
           cp src/lambda_function.py package/
           
+          echo "Bundling Linux OpenMP system shared library (libgomp) for implicit C++ matrix support..."
+          mkdir -p package/lib
+          cp $(find /usr -name "libgomp.so*" 2>/dev/null | head -n 1) package/lib/libgomp.so.1 || echo "⚠️ libgomp not found in root path"
+          ls -lh package/lib/ || true
+          
           echo "Compressing deployment bundle..."
           cd package
           zip -r -9 ../deployment_bundle.zip .

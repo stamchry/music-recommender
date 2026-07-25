@@ -1,4 +1,14 @@
 import os
+import sys
+import ctypes
+
+# Pre-load packaged OpenMP shared library (libgomp) when running inside AWS Lambda container
+if os.path.exists("/var/task/lib/libgomp.so.1"):
+    try:
+        ctypes.CDLL("/var/task/lib/libgomp.so.1", mode=ctypes.RTLD_GLOBAL)
+    except Exception as e:
+        print(f"Notice: pre-loading libgomp encountered: {e}")
+
 import json
 import time
 import pickle

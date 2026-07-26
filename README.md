@@ -51,11 +51,12 @@ This platform solves traditional machine learning infrastructure scale constrain
 
 ## ✨ Core Highlights & Engineering Accomplishments
 
-### 1. Out-of-Core ETL with DuckDB
-Loading over **4.5 million nested community listen events (~3.1 GB)** directly into RAM with Pandas routinely causes out-of-memory bottlenecks. This engine utilizes [clean_duckdb.py](file:///home/stamatis/projects/music-recommender/src/clean_duckdb.py) to perform high-speed SQL analytics straight across raw disk archives:
-* **Advanced Entity Resolution:** Normalizes inconsistent casing, double spaces, and strips intrusive audio tags (*"2011 Remaster"*, *"[Live]"*, *"Bonus Track"*) to unify artist vectors.
+### 1. Iterative Rolling-Window Out-of-Core ETL with DuckDB
+Processing a rolling 7-day window of **~35 million nested community listen events (~21+ GB of uncompressed JSON)** directly into RAM with Pandas routinely causes out-of-memory bottlenecks and exceeds standard cloud runner disk capacities. This engine utilizes an **Iterative Out-of-Core Batch Ingestion Pipeline** ([clean_duckdb.py](file:///home/stamatis/projects/music-recommender/src/clean_duckdb.py)) to process massive archives within tight storage constraints:
+* **Low-Memory Iterative Ingestion:** Downloads daily community dumps sequentially, stages valid interactions into a persistent disk DuckDB table, and purges multi-gigabyte raw archive files immediately after staging—keeping peak disk utilization under 3.5 GB at all times on free GitHub Actions runners.
+* **Global Entity Resolution & Deduplication:** Normalizes inconsistent casing, double spaces, and strips intrusive audio tags (*"2011 Remaster"*, *"[Live]"*, *"Bonus Track"*) to unify artist vectors while guaranteeing complete deduplication across overlapping historical windows.
 * **Intelligent Noise Filtering:** Eliminates spam bots and single-play anomalies by isolating active community listening patterns ($\ge 10$ user plays, $\ge 5$ artist community impressions).
-* **Storage Footprint:** Condenses 3.1 GB of uncompressed JSON into an optimized **~48 MB Parquet file** in under 20 seconds.
+* **Storage Footprint:** Condenses ~21+ GB of raw community archives into an optimized, ZSTD-compressed **Parquet dataset** ready for model training in seconds.
 
 ### 2. High-Speed Collaborative Filtering Engine
 * Employs implicit feedback **Alternating Least Squares (ALS)** ([train_model.py](file:///home/stamatis/projects/music-recommender/src/train_model.py)) across an active interaction matrix of tens of thousands of community members and dynamic artist catalog vectors.

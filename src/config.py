@@ -32,3 +32,7 @@ ALS_RANDOM_STATE = int(os.getenv("ALS_RANDOM_STATE", "42"))
 # Feature selection thresholds
 MIN_USER_PLAYS = int(os.getenv("MIN_USER_PLAYS", "10"))
 MIN_ARTIST_PLAYS = int(os.getenv("MIN_ARTIST_PLAYS", "5"))
+
+# Ingestion pipeline rolling window duration (in days/dumps)
+FETCH_NUM_DAYS = int(os.getenv("FETCH_NUM_DAYS", "7"))
+

@@ -18,12 +18,13 @@ class RecommenderDevServer(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         
         # Intercept API calls to simulate real-time cloud Lambda executions locally!
-        if parsed.path == "/api/recommend":
+        if parsed.path == "/api/recommend" or parsed.path == "/api/recommend/":
             query = parse_qs(parsed.query)
-            username = query.get("username", [None])[0]
+            # Unpack list values into standard dict mapping for Lambda simulation
+            params = {k: v[0] for k, v in query.items() if v}
             
-            mock_event = {"queryStringParameters": {"username": username}}
-            print(f"\n[DEV SERVER] Intercepted /api/recommend -> Triggering lambda_handler for user: '{username}'")
+            mock_event = {"queryStringParameters": params}
+            print(f"\n[DEV SERVER] Intercepted /api/recommend -> Triggering lambda_handler with params: {params}")
             
             response = lambda_handler(mock_event)
             

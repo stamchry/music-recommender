@@ -8,4 +8,9 @@ models/
 *.pkl
 *.parquet
 .DS_Store
-handout.md
+handout.md.pytest_cache/
+deployment_bundle.zip
+.vscode/
+.idea/
+scratch.py
+*.egg-info/

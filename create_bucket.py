@@ -2,9 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Add src to path so we can import s3_utils
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-import s3_utils
+from src import s3_utils
 
 def main():
     load_dotenv()

@@ -69,19 +69,20 @@ def recommend(username, model_dir, data_dir, n_recommendations=10):
 
 def main():
     load_dotenv(override=True)
+    from src.config import MODELS_DIR, DATA_PROCESSED
+    
     username = os.getenv("LISTENBRAINZ_USERNAME")
     
     if not username:
         logger.error("LISTENBRAINZ_USERNAME not found in environment.")
         return
         
-    base_dir = Path(__file__).resolve().parent.parent
-    model_dir = base_dir / "models"
-    data_dir = base_dir / "data" / "processed"
+    model_dir = MODELS_DIR
+    data_dir = DATA_PROCESSED
     
     bucket = os.getenv("AWS_S3_BUCKET")
     if bucket:
-        from s3_utils import download_directory, download_file
+        from src.s3_utils import download_directory, download_file
         download_directory(bucket, "models", model_dir)
         download_file(bucket, "data/processed/all_listens.parquet", data_dir / "all_listens.parquet")
         

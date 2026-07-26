@@ -94,7 +94,7 @@ def unpack_zst_tar(archive_path, output_dir):
     with open(archive_path, "rb") as compressed:
         with dctx.stream_reader(compressed) as reader:
             with tarfile.open(fileobj=reader, mode="r|*") as tar:
-                tar.extractall(path=output_dir)
+                tar.extractall(path=output_dir, filter='data')
                 
     extracted = [f for f in output_dir.rglob("*") if f.is_file()]
     logger.info(f"Successfully extracted {len(extracted)} files into {output_dir}:")
@@ -105,8 +105,8 @@ def unpack_zst_tar(archive_path, output_dir):
 
 def main():
     load_dotenv(override=True)
-    base_dir = Path(__file__).resolve().parent.parent
-    dump_dir = base_dir / "data" / "raw" / "dump"
+    from src.config import DATA_RAW_DUMP
+    dump_dir = DATA_RAW_DUMP
     unpacked_dir = dump_dir / "unpacked"
     dump_dir.mkdir(parents=True, exist_ok=True)
     
@@ -126,7 +126,7 @@ def main():
         # S3 optional backup of archive if desired
         bucket = os.getenv("AWS_S3_BUCKET")
         if bucket and os.getenv("UPLOAD_DUMPS_TO_S3", "false").lower() == "true":
-            from s3_utils import upload_file
+            from src.s3_utils import upload_file
             upload_file(archive_path, bucket, f"data/raw/dump/{archive_path.name}")
             
         logger.info("\n✅ Dump ingestion finished! Ready for out-of-core DuckDB cleaning.")

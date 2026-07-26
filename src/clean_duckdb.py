@@ -115,26 +115,24 @@ def clean_and_select_features(input_pattern, output_file, min_user_plays=10, min
 
 def main():
     load_dotenv(override=True)
-    base_dir = Path(__file__).resolve().parent.parent
-    dump_unpacked = base_dir / "data" / "raw" / "dump" / "unpacked"
-    output_file = base_dir / "data" / "processed" / "all_listens.parquet"
+    from src.config import DATA_RAW_DUMP, DATA_RAW, ALL_LISTENS_PARQUET, MIN_USER_PLAYS, MIN_ARTIST_PLAYS
+    
+    dump_unpacked = DATA_RAW_DUMP / "unpacked"
+    output_file = ALL_LISTENS_PARQUET
     
     # Combine both the massive community dump logs AND our targeted API user JSON files (like trampakulas)!
-    input_patterns = [str(dump_unpacked / "**" / "*.listens"), str(base_dir / "data" / "raw" / "*_listens.json")]
+    input_patterns = [str(dump_unpacked / "**" / "*.listens"), str(DATA_RAW / "*_listens.json")]
     
-    if not list(dump_unpacked.rglob("*.listens")) and not list((base_dir / "data" / "raw").glob("*_listens.json")):
+    if not list(dump_unpacked.rglob("*.listens")) and not list(DATA_RAW.glob("*_listens.json")):
         logger.error(f"No listening data found. Please run src/fetch_listens.py or src/fetch_dump.py first.")
         return
         
-    clean_and_select_features(input_patterns, output_file, min_user_plays=10, min_artist_plays=5)
+    clean_and_select_features(input_patterns, output_file, min_user_plays=MIN_USER_PLAYS, min_artist_plays=MIN_ARTIST_PLAYS)
     
     # Cloud sync: Only upload the lightweight cleaned Parquet file to AWS S3!
     bucket = os.getenv("AWS_S3_BUCKET")
     if bucket:
-        import sys
-        if str(base_dir / "src") not in sys.path:
-            sys.path.append(str(base_dir / "src"))
-        from s3_utils import upload_file
+        from src.s3_utils import upload_file
         logger.info(f"Uploading cleaned dataset ({output_file.name}) to AWS S3 Bucket ({bucket})...")
         upload_file(output_file, bucket, f"data/processed/{output_file.name}")
         logger.info("✅ AWS S3 sync complete! Your cloud pipeline now has millions of cleaned events.")

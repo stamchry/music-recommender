@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def train_model(input_file, model_dir):
+def train_model(input_file, model_dir, factors=50, regularization=0.1, iterations=20, random_state=42):
     logger.info(f"Loading data from {input_file}")
     df = pd.read_parquet(input_file)
     
@@ -42,10 +42,10 @@ def train_model(input_file, model_dir):
     
     # Initialize ALS model
     model = implicit.als.AlternatingLeastSquares(
-        factors=50, 
-        regularization=0.1, 
-        iterations=20, 
-        random_state=42
+        factors=factors, 
+        regularization=regularization, 
+        iterations=iterations, 
+        random_state=random_state
     )
     
     model.fit(user_item_data)
@@ -67,23 +67,24 @@ def train_model(input_file, model_dir):
 
 def main():
     load_dotenv(override=True)
+    from src.config import ALL_LISTENS_PARQUET, MODELS_DIR, ALS_FACTORS, ALS_REGULARIZATION, ALS_ITERATIONS, ALS_RANDOM_STATE
     
-    base_dir = Path(__file__).resolve().parent.parent
-    input_file = base_dir / "data" / "processed" / "all_listens.parquet"
-    model_dir = base_dir / "models"
+    input_file = ALL_LISTENS_PARQUET
+    model_dir = MODELS_DIR
     
     bucket = os.getenv("AWS_S3_BUCKET")
     if bucket:
-        from s3_utils import download_file, upload_directory
+        from src.s3_utils import download_file, upload_directory
         download_file(bucket, "data/processed/all_listens.parquet", input_file)
     
     if not input_file.exists():
-        logger.error(f"Input file not found: {input_file}. Run clean_data.py first.")
+        logger.error(f"Input file not found: {input_file}. Run clean_duckdb.py first.")
         return
         
-    train_model(input_file, model_dir)
+    train_model(input_file, model_dir, factors=ALS_FACTORS, regularization=ALS_REGULARIZATION, iterations=ALS_ITERATIONS, random_state=ALS_RANDOM_STATE)
     
     if bucket:
+        from src.s3_utils import upload_directory
         upload_directory(model_dir, bucket, "models")
 
 if __name__ == "__main__":

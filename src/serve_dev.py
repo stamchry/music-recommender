@@ -1,18 +1,13 @@
 import os
-import sys
+
 import json
 import socket
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
-# Add src to sys.path so we can cleanly invoke our AWS Lambda handler
-base_dir = Path(__file__).resolve().parent.parent
-sys.path.append(str(base_dir / "src"))
-
-from lambda_function import lambda_handler
-
-WEB_DIR = base_dir / "web"
+from src.lambda_function import lambda_handler
+from src.config import WEB_DIR
 
 class RecommenderDevServer(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

@@ -3,8 +3,6 @@
  * Aesthetics: JetBrains Mono / Fira Code, Amber/Terminal Green accents, ASCII formatting, Minimalist CLI
  */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
-
 :root {
   --bg-terminal: #0b0d0e;
   --bg-window: #111417;

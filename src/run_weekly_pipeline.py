@@ -17,13 +17,8 @@ logging.basicConfig(
 logger = logging.getLogger("WeeklyPipeline")
 
 # Import our modular pipeline engines
-base_dir = Path(__file__).resolve().parent.parent
-sys.path.append(str(base_dir / "src"))
-
-import fetch_listens
-import fetch_dump
-import clean_duckdb
-import train_model
+from src import fetch_listens, fetch_dump, clean_duckdb, train_model
+from src.config import DATA_RAW_DUMP
 
 def execute_pipeline_step(step_name, step_function, *args, **kwargs):
     """
@@ -80,7 +75,7 @@ def main():
     execute_pipeline_step("3. DuckDB SQL Data Cleaning & Parquet Compilation", clean_duckdb.main)
     
     # 4. Storage Optimization & Automatic Raw Debris Purge
-    raw_dump_path = base_dir / "data" / "raw" / "dump"
+    raw_dump_path = DATA_RAW_DUMP
     purge_temporary_raw_dumps(raw_dump_path)
     
     # 5. Train Collaborative Filtering ALS Matrix & Push to AWS S3

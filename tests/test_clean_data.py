@@ -24,13 +24,15 @@ def test_clean_data(tmp_path):
         }
     ]
     
-    input_file = tmp_path / "raw.json"
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    input_file = raw_dir / "test_user_listens.json"
     with open(input_file, "w") as f:
         json.dump(raw_data, f)
         
     output_file = tmp_path / "processed.parquet"
     
-    clean_data(input_file, output_file)
+    clean_data(raw_dir, output_file)
     
     assert output_file.exists()
     

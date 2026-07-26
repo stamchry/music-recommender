@@ -68,7 +68,8 @@ def main():
         
     usernames = [u.strip() for u in usernames_env.split(",") if u.strip()]
     
-    output_dir = Path(__file__).resolve().parent.parent / "data" / "raw"
+    from src.config import DATA_RAW
+    output_dir = DATA_RAW
     output_dir.mkdir(parents=True, exist_ok=True)
     
     for username in usernames:
@@ -83,7 +84,7 @@ def main():
         
         bucket = os.getenv("AWS_S3_BUCKET")
         if bucket:
-            from s3_utils import upload_file
+            from src.s3_utils import upload_file
             s3_key = f"data/raw/{output_file.name}"
             upload_file(output_file, bucket, s3_key)
 

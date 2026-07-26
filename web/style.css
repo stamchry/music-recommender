@@ -3,6 +3,8 @@
  * Aesthetics: JetBrains Mono / Fira Code, Amber/Terminal Green accents, ASCII formatting, Minimalist CLI
  */
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+
 :root {
   --bg-terminal: #0b0d0e;
   --bg-window: #111417;
@@ -85,19 +87,11 @@ body {
 .ascii-banner {
   color: var(--term-green);
   font-weight: 700;
-  font-family: "DejaVu Sans Mono", "Menlo", "Monaco", "Bitstream Vera Sans Mono", "Consolas", "Courier New", monospace;
-  font-variant-ligatures: none;
-  letter-spacing: 0;
-  text-rendering: geometricPrecision;
-  -webkit-font-smoothing: antialiased;
-  white-space: pre;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--term-green) rgba(0, 0, 0, 0.3);
+  white-space: pre-wrap;
+  word-break: break-all;
   margin-bottom: 1rem;
-  font-size: 12px;
-  line-height: 15px;
+  font-size: 0.75rem;
+  line-height: 1.2;
 }
 
 .sys-info {
@@ -315,9 +309,167 @@ footer {
   background-color: #0e1114;
 }
 
+/* --- Mode Switcher & Custom Studio Mixer Styles --- */
+.mode-btn {
+  background: transparent;
+  color: var(--term-dim);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.mode-btn:hover {
+  color: var(--text-bright);
+  border-color: var(--term-cyan);
+}
+
+.mode-btn.active-mode {
+  color: var(--bg-terminal);
+  background: var(--term-cyan);
+  border-color: var(--term-cyan);
+  box-shadow: 0 0 10px rgba(78, 227, 240, 0.4);
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #0d1115;
+  border: 1px solid var(--term-cyan);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  list-style: none;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+  margin-top: 2px;
+}
+
+.autocomplete-item {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: var(--text-bright);
+  font-size: 0.95rem;
+  transition: background 0.15s ease, color 0.15s ease;
+  border-bottom: 1px solid #1a2128;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover, .autocomplete-item.focused {
+  background: var(--term-green);
+  color: var(--bg-terminal);
+  font-weight: 700;
+}
+
+.autocomplete-item::after {
+  content: "+ ADD TO MIX";
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-weight: normal;
+}
+
+.autocomplete-item:hover::after {
+  opacity: 1;
+}
+
+/* Custom Artist Stage Pill */
+.artist-pill-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--term-green);
+  border-radius: 4px;
+  gap: 1rem;
+  flex-wrap: wrap;
+  transition: all 0.2s ease;
+}
+
+.artist-pill-card.negative-card {
+  border-left-color: #ff3333;
+  background: rgba(255, 51, 51, 0.05);
+}
+
+.artist-pill-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.rating-btn-group {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rating-btn {
+  background: transparent;
+  border: 1px solid #283038;
+  color: var(--term-dim);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.rating-btn:hover {
+  border-color: var(--term-amber);
+  color: var(--text-bright);
+}
+
+.rating-btn.active-rating-pos {
+  background: rgba(74, 246, 38, 0.15);
+  border-color: var(--term-green);
+  color: var(--term-green);
+  font-weight: 700;
+  box-shadow: 0 0 6px rgba(74, 246, 38, 0.25);
+}
+
+.rating-btn.active-rating-neg {
+  background: rgba(255, 51, 51, 0.15);
+  border-color: #ff3333;
+  color: #ff3333;
+  font-weight: 700;
+  box-shadow: 0 0 6px rgba(255, 51, 51, 0.25);
+}
+
+.remove-artist-btn {
+  background: transparent;
+  border: none;
+  color: var(--term-dim);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0 0.4rem;
+  transition: color 0.15s ease;
+}
+
+.remove-artist-btn:hover {
+  color: #ff3333;
+}
+
 @media (max-width: 600px) {
   .terminal-body { padding: 1rem; }
-  .ascii-banner { font-size: 12px; line-height: 15px; }
   .prompt-line { flex-direction: column; align-items: flex-start; }
   .term-table th, .term-table td { padding: 0.4rem; font-size: 0.75rem; }
+  .artist-pill-card { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+  .rating-btn-group { width: 100%; justify-content: space-between; }
 }

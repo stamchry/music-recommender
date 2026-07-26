@@ -54,34 +54,80 @@
         </div>
       </section>
 
-      <!-- Friendly Input Bar -->
-      <form id="rec-form" onsubmit="return false;" aria-label="Prediction Search Bar">
-        <div class="prompt-line">
-          <label for="username-input" class="prompt-path" style="font-size: 1rem;">👉 Enter a ListenBrainz username:</label>
-          <div class="input-container">
+      <!-- Mode Switcher Tabs -->
+      <div class="mode-switcher" aria-label="Prediction Mode Toggle" style="margin-bottom: 1.2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.8rem;">
+        <button id="mode-btn-user" class="mode-btn active-mode" type="button">🌐 ListenBrainz Username Lookup</button>
+        <button id="mode-btn-custom" class="mode-btn" type="button">🎛️ Custom Artist Mixer (No Account Needed!)</button>
+      </div>
+
+      <!-- Mode 1: Friendly Input Bar -->
+      <div id="username-mode-container">
+        <form id="rec-form" onsubmit="return false;" aria-label="Prediction Search Bar">
+          <div class="prompt-line">
+            <label for="username-input" class="prompt-path" style="font-size: 1rem;">👉 Enter a ListenBrainz username:</label>
+            <div class="input-container">
+              <input 
+                type="text" 
+                id="username-input" 
+                class="term-input" 
+                placeholder="e.g. trampakulas" 
+                value="trampakulas"
+                required
+                autocomplete="off"
+                aria-label="Target ListenBrainz Username"
+              >
+              <button type="submit" id="submit-button" class="term-btn">Get Recommendations →</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Accessible Profile Presets -->
+        <div class="args-row" id="presets-container" style="margin-top: 1rem;">
+          <span style="color: var(--term-dim);">Or try a live test profile:</span>
+          <button class="arg-btn user-tag" data-username="trampakulas" type="button">🎸 trampakulas (Classic Rock & Legends)</button>
+          <button class="arg-btn user-tag" data-username="lypka" type="button">🎛️ lypka (Electronic & Ambient)</button>
+          <button class="arg-btn user-tag" data-username="rexvizsla" type="button">🎤 rexvizsla (Modern Pop & Chart Hits)</button>
+          <button class="arg-btn user-tag" data-username="Tigermelon" type="button">🎷 Tigermelon (Math-Rock & Funk Grooves)</button>
+          <button class="arg-btn user-tag" data-username="Eslamov" type="button">🎧 Eslamov (Hip-Hop & R&B)</button>
+        </div>
+      </div>
+
+      <!-- Mode 2: Custom Artist Mixer Input (Initially Hidden) -->
+      <div id="custom-mixer-container" class="custom-mixer" style="display: none;">
+        <div class="prompt-line" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
+          <label for="artist-auto-input" class="prompt-path" style="font-size: 1rem;">👉 Type artist names to build your custom acoustic profile:</label>
+          
+          <div class="auto-input-wrapper" style="position: relative;">
             <input 
               type="text" 
-              id="username-input" 
+              id="artist-auto-input" 
               class="term-input" 
-              placeholder="e.g. trampakulas" 
-              value="trampakulas"
-              required
+              placeholder="Start typing an artist... (e.g. Daft Punk, Metallica, Taylor Swift)" 
               autocomplete="off"
-              aria-label="Target ListenBrainz Username"
+              aria-label="Artist Autocomplete Search"
+              style="width: 100%;"
             >
-            <button type="submit" id="submit-button" class="term-btn">Get Recommendations →</button>
+            <!-- Autocomplete Dropdown List -->
+            <ul id="autocomplete-dropdown" class="autocomplete-list" style="display: none;"></ul>
           </div>
         </div>
-      </form>
 
-      <!-- Accessible Profile Presets -->
-      <div class="args-row" id="presets-container" style="margin-top: 1rem;">
-        <span style="color: var(--term-dim);">Or try a live test profile:</span>
-        <button class="arg-btn user-tag" data-username="trampakulas" type="button">🎸 trampakulas (Classic Rock & Legends)</button>
-        <button class="arg-btn user-tag" data-username="lypka" type="button">🎛️ lypka (Electronic & Ambient)</button>
-        <button class="arg-btn user-tag" data-username="rexvizsla" type="button">🎤 rexvizsla (Modern Pop & Chart Hits)</button>
-        <button class="arg-btn user-tag" data-username="Tigermelon" type="button">🎷 Tigermelon (Math-Rock & Funk Grooves)</button>
-        <button class="arg-btn user-tag" data-username="Eslamov" type="button">🎧 Eslamov (Hip-Hop & R&B)</button>
+        <!-- Staging Buffer for Added Artist Pills -->
+        <div class="mixer-stage" style="margin-top: 1.2rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--bg-window); border-radius: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-weight: 600; color: var(--term-green);">🎚️ Active Faders (Your Favorites & Bans):</span>
+            <span id="mixer-count" style="font-size: 0.85rem; color: var(--term-amber); font-weight: bold;">0 / 5 Artists Added (Add ≥ 5 for precision!)</span>
+          </div>
+          
+          <div id="pills-stage" class="pills-stage" style="display: flex; flex-direction: column; gap: 0.6rem; min-height: 50px;">
+            <div id="empty-stage-msg" style="color: var(--term-dim); font-style: italic; font-size: 0.9rem;">No artists added yet! Use the box above to search and select favorite bands or artists you dislike.</div>
+          </div>
+          
+          <div style="margin-top: 1.2rem; display: flex; justify-content: flex-end; gap: 1rem; align-items: center;">
+            <button id="clear-mixer-btn" class="arg-btn" type="button" style="color: #ff5555; border-color: #ff5555; display: none;">🗑️ Clear Stage</button>
+            <button id="generate-custom-btn" class="term-btn" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">GENERATE CUSTOM DISCOVERIES 🎧</button>
+          </div>
+        </div>
       </div>
 
       <!-- Human-Readable Execution Status -->

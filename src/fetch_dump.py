@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 INDEX_URL = "https://data.musicbrainz.org/pub/musicbrainz/listenbrainz/incremental/"
 
-def get_latest_dump_url():
-    """Scrape the incremental dump index to find the latest listens .tar.zst archive."""
-    logger.info(f"Querying index at {INDEX_URL}...")
+def get_latest_dump_urls(num_dumps=7):
+    """Scrape the incremental dump index to find the latest N daily listens .tar.zst archives."""
+    logger.info(f"Querying index at {INDEX_URL} for the latest {num_dumps} dumps...")
     response = requests.get(INDEX_URL, timeout=15)
     response.raise_for_status()
     
@@ -28,28 +28,38 @@ def get_latest_dump_url():
         
     # Sort folders alphabetically; since they contain dates (YYYYMMDD), alphabetical is chronological
     folders = sorted(list(set(folders)))
-    latest_folder = folders[-1].rstrip('/') + '/'
-    folder_url = urllib.parse.urljoin(INDEX_URL, latest_folder)
     
-    logger.info(f"Latest dump directory identified: {folder_url}")
-    folder_resp = requests.get(folder_url, timeout=15)
-    folder_resp.raise_for_status()
-    
-    # Find the listens-dump tar.zst archive
-    archives = re.findall(r'href="(listenbrainz-listens-dump-[^"]+\.tar\.zst)"', folder_resp.text)
-    if not archives:
-        # Fallback to second latest folder if current day is still generating
-        logger.warning(f"No completed archive in {latest_folder}, checking previous day...")
-        latest_folder = folders[-2].rstrip('/') + '/'
-        folder_url = urllib.parse.urljoin(INDEX_URL, latest_folder)
-        folder_resp = requests.get(folder_url, timeout=15)
-        archives = re.findall(r'href="(listenbrainz-listens-dump-[^"]+\.tar\.zst)"', folder_resp.text)
+    archive_urls = []
+    # Traverse backward from most recent folder until we gather requested number of completed dumps
+    for folder in reversed(folders):
+        if len(archive_urls) >= num_dumps:
+            break
+        folder_clean = folder.rstrip('/') + '/'
+        folder_url = urllib.parse.urljoin(INDEX_URL, folder_clean)
+        try:
+            folder_resp = requests.get(folder_url, timeout=15)
+            if folder_resp.status_code == 200:
+                archives = re.findall(r'href="(listenbrainz-listens-dump-[^"]+\.tar\.zst)"', folder_resp.text)
+                if archives:
+                    archive_url = urllib.parse.urljoin(folder_url, archives[0])
+                    archive_urls.append(archive_url)
+                else:
+                    logger.debug(f"No archive found in {folder_clean}, possibly still generating.")
+        except Exception as e:
+            logger.warning(f"Failed to check folder {folder_clean}: {e}")
+            
+    if not archive_urls:
+        raise ValueError("Could not locate any valid listenbrainz-listens-dump tar.zst archives.")
         
-    if not archives:
-        raise ValueError("Could not locate a listenbrainz-listens-dump tar.zst archive.")
-        
-    archive_url = urllib.parse.urljoin(folder_url, archives[0])
-    return archive_url
+    # Reverse to process chronologically (oldest to newest)
+    archive_urls.reverse()
+    logger.info(f"Successfully discovered {len(archive_urls)} archive dump URLs.")
+    return archive_urls
+
+def get_latest_dump_url():
+    """Scrape the incremental dump index to find the single latest listens .tar.zst archive."""
+    urls = get_latest_dump_urls(num_dumps=1)
+    return urls[-1] if urls else None
 
 def download_file(url, target_path):
     """Download file with a visual tqdm progress bar."""
@@ -78,30 +88,53 @@ def download_file(url, target_path):
     logger.info("Download complete!")
 
 def unpack_zst_tar(archive_path, output_dir):
-    """Decompress .tar.zst archive and extract files to output_dir."""
+    """Decompress .tar.zst archive and extract files to an archive-specific directory in output_dir."""
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir = output_dir / archive_path.name.replace('.tar.zst', '').replace('.tar', '')
+    archive_dir.mkdir(parents=True, exist_ok=True)
     
-    # Check if we already unpacked files
-    existing_files = list(output_dir.rglob("*.json*")) + list(output_dir.rglob("*.log")) + list(output_dir.rglob("*.tsv"))
+    # Check if we already unpacked this specific archive
+    existing_files = list(archive_dir.rglob("*.listens")) + list(archive_dir.rglob("*.json*"))
     if existing_files:
-        logger.info(f"Found {len(existing_files)} already extracted data files in {output_dir}. Skipping decompression.")
-        return
+        logger.info(f"Found {len(existing_files)} extracted files in {archive_dir}. Skipping decompression.")
+        return archive_dir
 
-    logger.info(f"Decompressing and unpacking {archive_path.name} (this may take a minute)...")
+    logger.info(f"Decompressing and unpacking {archive_path.name} into {archive_dir}...")
     dctx = zstd.ZstdDecompressor()
     
     with open(archive_path, "rb") as compressed:
         with dctx.stream_reader(compressed) as reader:
             with tarfile.open(fileobj=reader, mode="r|*") as tar:
-                tar.extractall(path=output_dir, filter='data')
+                tar.extractall(path=archive_dir, filter='data')
                 
-    extracted = [f for f in output_dir.rglob("*") if f.is_file()]
-    logger.info(f"Successfully extracted {len(extracted)} files into {output_dir}:")
+    extracted = [f for f in archive_dir.rglob("*") if f.is_file()]
+    logger.info(f"Successfully extracted {len(extracted)} files into {archive_dir}:")
     for file in extracted[:5]:
-        logger.info(f"  -> {file.relative_to(output_dir)} ({file.stat().st_size / (1024*1024):.2f} MB)")
+        logger.info(f"  -> {file.relative_to(archive_dir)} ({file.stat().st_size / (1024*1024):.2f} MB)")
     if len(extracted) > 5:
         logger.info(f"  ... and {len(extracted) - 5} more files.")
+    return archive_dir
+
+def download_and_unpack_dump(url, dump_dir, unpacked_dir):
+    """Download and extract a specific dump archive URL into target directories."""
+    dump_dir = Path(dump_dir)
+    unpacked_dir = Path(unpacked_dir)
+    dump_dir.mkdir(parents=True, exist_ok=True)
+    unpacked_dir.mkdir(parents=True, exist_ok=True)
+    
+    filename = url.split('/')[-1]
+    archive_path = dump_dir / filename
+    
+    download_file(url, archive_path)
+    unpack_zst_tar(archive_path, unpacked_dir)
+    
+    # Optional S3 backup of raw archive if desired
+    bucket = os.getenv("AWS_S3_BUCKET")
+    if bucket and os.getenv("UPLOAD_DUMPS_TO_S3", "false").lower() == "true":
+        from src.s3_utils import upload_file
+        upload_file(archive_path, bucket, f"data/raw/dump/{archive_path.name}")
+        
+    return archive_path
 
 def main():
     load_dotenv(override=True)
@@ -116,18 +149,16 @@ def main():
         custom_url = sys.argv[1]
         
     try:
-        url = custom_url if custom_url else get_latest_dump_url()
-        filename = url.split('/')[-1]
-        archive_path = dump_dir / filename
-        
-        download_file(url, archive_path)
-        unpack_zst_tar(archive_path, unpacked_dir)
-        
-        # S3 optional backup of archive if desired
-        bucket = os.getenv("AWS_S3_BUCKET")
-        if bucket and os.getenv("UPLOAD_DUMPS_TO_S3", "false").lower() == "true":
-            from src.s3_utils import upload_file
-            upload_file(archive_path, bucket, f"data/raw/dump/{archive_path.name}")
+        if custom_url:
+            urls = [custom_url]
+        else:
+            # For standalone command line execution, check FETCH_NUM_DAYS (defaults to 1 for quick experimentation)
+            num_dumps = int(os.getenv("FETCH_NUM_DAYS", "1"))
+            urls = get_latest_dump_urls(num_dumps=num_dumps)
+            
+        for idx, url in enumerate(urls, 1):
+            logger.info(f"\n--- Ingesting archive {idx}/{len(urls)}: {url} ---")
+            download_and_unpack_dump(url, dump_dir, unpacked_dir)
             
         logger.info("\n✅ Dump ingestion finished! Ready for out-of-core DuckDB cleaning.")
     except Exception as e:
@@ -135,3 +166,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

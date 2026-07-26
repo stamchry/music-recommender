@@ -87,8 +87,11 @@ body {
 .ascii-banner {
   color: var(--term-green);
   font-weight: 700;
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: pre;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--term-green) rgba(0, 0, 0, 0.3);
   margin-bottom: 1rem;
   font-size: 0.75rem;
   line-height: 1.2;
@@ -311,6 +314,7 @@ footer {
 
 @media (max-width: 600px) {
   .terminal-body { padding: 1rem; }
+  .ascii-banner { font-size: 0.55rem; line-height: 1.15; }
   .prompt-line { flex-direction: column; align-items: flex-start; }
   .term-table th, .term-table td { padding: 0.4rem; font-size: 0.75rem; }
 }

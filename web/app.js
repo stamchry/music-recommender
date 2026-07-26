@@ -65,7 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Could not find listening history for this account.`);
+        if (response.status === 404) {
+          throw new Error(errData.error || `Could not find listening history for user '${username}'.`);
+        } else {
+          throw new Error(errData.error || `Server error during recommendation processing (${response.status}: ${response.statusText || 'Error'}).`);
+        }
       }
 
       const data = await response.json();

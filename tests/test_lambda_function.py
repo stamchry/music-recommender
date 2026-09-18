@@ -62,6 +62,7 @@ def test_fetch_user_artist_profile_404(mock_get, mock_cached_model):
 @patch("src.lambda_function.requests.get")
 def test_fetch_user_artist_profile_success(mock_get, mock_cached_model):
     mock_resp = MagicMock(status_code=200)
+    mock_resp.text = '{"payload": {"artists": [{"artist_name": "Daft Punk", "listen_count": 42}]}}'
     mock_resp.json.return_value = {
         "payload": {
             "artists": [
@@ -75,3 +76,24 @@ def test_fetch_user_artist_profile_success(mock_get, mock_cached_model):
     data = json.loads(res["body"])
     assert data["username"] == "test_user"
     assert data["profile_matches_found"] == 1
+
+@patch("src.lambda_function.requests.get")
+def test_fetch_user_artist_profile_204_fallback(mock_get, mock_cached_model):
+    resp_stats_204 = MagicMock(status_code=204, text="")
+    resp_listens_200 = MagicMock(status_code=200, text='{"payload": {"listens": [...]}}')
+    resp_listens_200.json.return_value = {
+        "payload": {
+            "listens": [
+                {"track_metadata": {"artist_name": "Daft Punk"}},
+                {"track_metadata": {"artist_name": "Daft Punk"}},
+                {"track_metadata": {"artist_name": "Kraftwerk"}}
+            ]
+        }
+    }
+    mock_get.side_effect = [resp_stats_204, resp_listens_200]
+    res = lambda_function.lambda_handler({"queryStringParameters": {"username": "mock_fallback_user"}})
+    assert res["statusCode"] == 200
+    data = json.loads(res["body"])
+    assert data["username"] == "mock_fallback_user"
+    assert data["profile_matches_found"] == 2
+

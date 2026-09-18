@@ -14,6 +14,7 @@ import time
 import pickle
 import logging
 from pathlib import Path
+from collections import Counter
 import requests
 import numpy as np
 import scipy.sparse as sparse
@@ -73,18 +74,53 @@ def fetch_user_artist_profile(username, max_artists=50):
     """
     Fetch pre-computed all-time top artist counts for a user from the ListenBrainz stats engine.
     Avoids single-album bias and completes in <200 milliseconds without massive log downloading.
+    If the stats engine returns 204 No Content (uncalculated) or empty, gracefully falls back
+    to aggregating recent scrobbles from the /listens endpoint.
     """
-    url = f"https://api.listenbrainz.org/1/stats/user/{username}/artists"
+    stats_url = f"https://api.listenbrainz.org/1/stats/user/{username}/artists"
     params = {"count": max_artists}
     logger.info(f"Querying live ListenBrainz profile stats for {username}...")
     
-    response = requests.get(url, params=params, timeout=10)
-    if response.status_code == 404:
+    try:
+        response = requests.get(stats_url, params=params, timeout=10)
+        if response.status_code == 200 and response.text.strip():
+            data = response.json()
+            artists = data.get("payload", {}).get("artists", [])
+            if artists:
+                return artists
+        elif response.status_code not in (200, 204, 404):
+            response.raise_for_status()
+    except Exception as e:
+        logger.warning(f"Stats endpoint lookup failed for {username}: {e}. Trying raw listens fallback...")
+
+    # Fallback: query user recent listens and aggregate top artists
+    logger.info(f"Falling back to recent listens scrobbles for {username}...")
+    listens_url = f"https://api.listenbrainz.org/1/user/{username}/listens"
+    try:
+        listens_resp = requests.get(listens_url, params={"count": 100}, timeout=10)
+        if listens_resp.status_code == 404:
+            return []
+        listens_resp.raise_for_status()
+        if not listens_resp.text.strip():
+            return []
+        listens_data = listens_resp.json()
+        listens = listens_data.get("payload", {}).get("listens", [])
+        if not listens:
+            return []
+            
+        counts = Counter()
+        for item in listens:
+            artist = item.get("track_metadata", {}).get("artist_name")
+            if artist:
+                counts[artist] += 1
+                
+        return [
+            {"artist_name": artist, "listen_count": count}
+            for artist, count in counts.most_common(max_artists)
+        ]
+    except Exception as e:
+        logger.warning(f"Listens fallback lookup failed for {username}: {e}")
         return []
-    response.raise_for_status()
-    
-    data = response.json()
-    return data.get("payload", {}).get("artists", [])
 
 def search_artist_catalog(query_prefix, limit=10):
     """

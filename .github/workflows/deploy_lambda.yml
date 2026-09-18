@@ -43,12 +43,19 @@ jobs:
         with:
           python-version: "3.11"
           
-      - name: 🏗️ Compile Lambda Runtime Deployment Bundle
+      - name: 🏗️ Compile Lambda Runtime Deployment Bundle via AWS SAM Container
         run: |
-          echo "Installing minimal serverless runtime dependencies into staging folder..."
+          echo "Building binary-compatible deployment bundle in official Amazon Linux 2 / SAM container..."
           mkdir -p package
-          # Install compiled Linux x86_64 binary wheels optimized specifically for AWS Lambda (Amazon Linux)
-          pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.11 || pip install -r deploy/lambda_requirements.txt -t package/ --no-cache-dir
+          
+          docker run --rm -v "${{ github.workspace }}":/var/task public.ecr.aws/sam/build-python3.11 /bin/bash -c "
+            set -e
+            yum install -y libgomp
+            pip install -r /var/task/deploy/lambda_requirements.txt -t /var/task/package/ --no-cache-dir
+            mkdir -p /var/task/package/lib
+            cp -L /usr/lib64/libgomp.so.1 /var/task/package/lib/libgomp.so.1
+            chmod -R ugo+rw /var/task/package
+          "
           
           echo "Pruning extraneous test suites and bytecode to optimize bundle footprint..."
           find package/ -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
@@ -58,11 +65,6 @@ jobs:
           
           echo "Copying recommendation inference entry point..."
           cp src/lambda_function.py package/
-          
-          echo "Bundling Linux OpenMP system shared library (libgomp) for implicit C++ matrix support..."
-          mkdir -p package/lib
-          cp $(find /usr -name "libgomp.so*" 2>/dev/null | head -n 1) package/lib/libgomp.so.1 || echo "⚠️ libgomp not found in root path"
-          ls -lh package/lib/ || true
           
           echo "Compressing deployment bundle..."
           cd package
